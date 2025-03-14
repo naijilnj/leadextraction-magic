@@ -22,14 +22,14 @@ const LeadExtractor: React.FC = () => {
       setSearchParams({ category, location });
       
       toast({
-        title: 'Leads Extracted',
-        description: `Found ${extractedLeads.length} leads for ${category} in ${location}`,
+        title: 'Sample Leads Generated',
+        description: `Generated ${extractedLeads.length} sample leads for ${category} in ${location}`,
       });
     } catch (error) {
-      console.error('Error extracting leads:', error);
+      console.error('Error generating sample leads:', error);
       toast({
-        title: 'Extraction Failed',
-        description: 'There was an error extracting leads. Please try again.',
+        title: 'Generation Failed',
+        description: 'There was an error generating sample leads. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -93,8 +93,8 @@ const LeadExtractor: React.FC = () => {
           transition={{ duration: 0.5, delay: 1.5 }}
         >
           <p>
-            This tool is for demonstration purposes only. In a production environment,
-            web scraping would be implemented with proper API integration.
+            This tool demonstrates the UI for a JustDial lead extractor.
+            Real implementation would require a Node.js backend with Puppeteer.
           </p>
         </motion.div>
       </motion.div>

@@ -2,7 +2,14 @@
 import React, { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MapPin, RefreshCw } from 'lucide-react';
+import { Search, MapPin, RefreshCw, Info } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface SearchFormProps {
   onSubmit: (category: string, location: string) => void;
@@ -35,6 +42,17 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit, isLoading }) => {
       transition={{ duration: 0.5, delay: 1.3 }}
     >
       <div className="glass-card p-6 md:p-8">
+        <div className="mb-4 flex items-start bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+          <Info size={18} className="text-amber-600 dark:text-amber-400 mt-0.5 mr-2 flex-shrink-0" />
+          <div className="text-sm text-amber-700 dark:text-amber-300">
+            <p className="font-medium">Backend Required for Real Scraping</p>
+            <p className="mt-1">
+              Real JustDial data extraction requires a Node.js backend with Puppeteer. 
+              This demo will show simulated data.
+            </p>
+          </div>
+        </div>
+        
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-1">
             <label htmlFor="category" className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -85,10 +103,10 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit, isLoading }) => {
               {isLoading ? (
                 <>
                   <RefreshCw size={18} className="mr-2 animate-spin" />
-                  Extracting...
+                  Simulating...
                 </>
               ) : (
-                'Extract Leads'
+                'Show Sample Leads'
               )}
             </span>
           </button>
@@ -101,18 +119,33 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit, isLoading }) => {
                 exit={{ opacity: 0, height: 0 }}
                 className="text-sm text-center text-gray-600 dark:text-gray-300"
               >
-                Attempting to extract real data from JustDial. This may take a minute...
+                Generating sample leads for demonstration purposes...
               </motion.p>
             )}
           </AnimatePresence>
           
-          <motion.p
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2"
           >
-            Note: If real data extraction fails due to JustDial's anti-scraping measures, mock data will be shown as a fallback.
-          </motion.p>
+            <p>
+              Note: Real JustDial extraction would require a backend with Puppeteer as shown in the reference code.
+            </p>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="link" size="sm" className="text-xs underline text-blue-500 dark:text-blue-400 mt-1 h-auto p-0">
+                  Why can't we scrape directly?
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs text-xs">
+                <p>
+                  JustDial uses advanced anti-scraping techniques that require server-side tools like Puppeteer to bypass.
+                  Browser security restrictions prevent running Puppeteer in client-side JavaScript.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </motion.div>
         </form>
       </div>
     </motion.div>

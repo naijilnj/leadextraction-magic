@@ -13,177 +13,21 @@ export interface Lead {
   website?: string;
 }
 
-// Function to extract leads from JustDial
+// Function that would extract leads from JustDial if we had a backend
 export const extractLeads = async (
   category: string,
   location: string
 ): Promise<Lead[]> => {
-  console.log(`Extracting real leads for ${category} in ${location}`);
+  console.log(`Unable to extract real leads for ${category} in ${location} - backend required`);
+  console.log('Real extraction requires Puppeteer running on a Node.js backend');
   
-  try {
-    // Format the URL for JustDial search
-    const formattedCategory = category.toLowerCase().replace(/\s+/g, '-');
-    const formattedLocation = location.toLowerCase().replace(/\s+/g, '-');
-    const url = `https://www.justdial.com/${formattedLocation}/${formattedCategory}`;
-    
-    console.log(`Requesting URL: ${url}`);
-    
-    // Make HTTP request to JustDial
-    const response = await axios.get(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-      },
-    });
-    
-    // Load HTML into Cheerio
-    const $ = load(response.data);
-    const leads: Lead[] = [];
-    
-    // JustDial uses specific classes for business listings
-    // These selectors may need to be updated if JustDial changes their HTML structure
-    $('.jsx-3349e7cd87e12d75').each((_, element) => {
-      const nameElement = $(element).find('h2.jsx-3349e7cd87e12d75');
-      const name = nameElement.text().trim();
-      
-      // Extract phone number (JustDial often obfuscates this)
-      // This technique attempts to find phone numbers in the page
-      let phone = "Not available";
-      const phoneElement = $(element).find('.contact-info');
-      if (phoneElement.length) {
-        // JustDial may use images or special encoding for phone numbers
-        // Try to extract it from the data attributes or inner HTML
-        const phoneData = phoneElement.attr('data-href') || phoneElement.attr('data-phone') || '';
-        if (phoneData) {
-          // Remove non-numeric characters
-          phone = phoneData.replace(/\D/g, '');
-          // Format it as an Indian phone number if it looks like one
-          if (phone.length >= 10) {
-            phone = `+91 ${phone.slice(-10, -5)} ${phone.slice(-5)}`;
-          }
-        }
-      }
-      
-      // Extract address
-      const addressElement = $(element).find('.address-info');
-      const address = addressElement.text().trim() || `${location} (exact address not available)`;
-      
-      // Extract rating if available
-      const ratingElement = $(element).find('.rating');
-      const rating = ratingElement.text().trim() || undefined;
-      
-      // Extract website if available (JustDial sometimes has website links)
-      const websiteElement = $(element).find('a[href*="http"]').filter((_, el) => {
-        return $(el).text().includes('Website') || $(el).attr('href')?.includes('redirectUrl');
-      });
-      
-      let website = undefined;
-      if (websiteElement.length) {
-        website = websiteElement.attr('href') || undefined;
-        // Clean up redirect URLs if present
-        if (website && website.includes('redirectUrl')) {
-          const match = website.match(/redirectUrl=([^&]+)/);
-          if (match && match[1]) {
-            website = decodeURIComponent(match[1]);
-          }
-        }
-      }
-      
-      // We typically can't extract emails directly from JustDial listings
-      
-      if (name) {
-        leads.push({
-          name,
-          phone,
-          address,
-          rating,
-          category,
-          website,
-        });
-      }
-    });
-    
-    // If no results found using the primary selector, try alternative selectors
-    if (leads.length === 0) {
-      console.log("Using alternative selectors");
-      
-      // Try alternative class names (JustDial sometimes changes these)
-      $('.store-details').each((_, element) => {
-        const name = $(element).find('span.lng_cont_name').text().trim();
-        const address = $(element).find('span.cont_fl_addr').text().trim();
-        
-        // For phone numbers, JustDial uses a special encoding technique
-        // We need to decode their font mapping
-        let phone = "Not available";
-        const phoneElements = $(element).find('.mobilesv');
-        
-        if (phoneElements.length) {
-          // This maps JustDial's encoded characters to actual digits
-          // This mapping needs to be updated if JustDial changes their encoding
-          const digitMap = {
-            'icon-acb': '0',
-            'icon-yz': '1',
-            'icon-wx': '2',
-            'icon-vu': '3',
-            'icon-ts': '4',
-            'icon-rq': '5',
-            'icon-po': '6',
-            'icon-nm': '7',
-            'icon-lk': '8',
-            'icon-ji': '9'
-          };
-          
-          let phoneNumber = '';
-          phoneElements.find('span').each((_, span) => {
-            const classes = $(span).attr('class')?.split(' ') || [];
-            for (const cls of classes) {
-              if (digitMap[cls]) {
-                phoneNumber += digitMap[cls];
-              }
-            }
-          });
-          
-          if (phoneNumber.length >= 10) {
-            phone = `+91 ${phoneNumber.slice(0, 5)} ${phoneNumber.slice(5)}`;
-          }
-        }
-        
-        const rating = $(element).find('.green-box').text().trim() || undefined;
-        
-        if (name) {
-          leads.push({
-            name,
-            phone,
-            address: address || `${location} (exact address not available)`,
-            rating,
-            category,
-          });
-        }
-      });
-    }
-    
-    console.log(`Extracted ${leads.length} real leads from JustDial`);
-    
-    // If we still couldn't extract leads, fall back to mock data
-    if (leads.length === 0) {
-      console.warn("Could not extract real leads. Falling back to mock data.");
-      return generateMockLeads(category, location);
-    }
-    
-    return leads;
-  } catch (error) {
-    console.error("Error extracting real leads:", error);
-    console.log("Falling back to mock data due to extraction error");
-    
-    // Fallback to mock data in case of errors
-    return generateMockLeads(category, location);
-  }
+  // Always fall back to mock data since we can't use Puppeteer in the browser
+  return generateMockLeads(category, location);
 };
 
-// Fallback function to generate mock leads when real extraction fails
+// Fallback function to generate mock leads that simulates real data
 const generateMockLeads = (category: string, location: string): Lead[] => {
-  console.log(`Generating mock leads for ${category} in ${location} as fallback`);
+  console.log(`Generating realistic mock leads for ${category} in ${location}`);
   
   // All the mock data generation code
   const mockBusinessTypes = {
@@ -206,7 +50,13 @@ const generateMockLeads = (category: string, location: string): Lead[] => {
         "Pali Village Café", 
         "Bastian", 
         "Jai Hind Lunch Home", 
-        "Khyber"
+        "Khyber",
+        "Leopold Cafe",
+        "Bademiya",
+        "Punjab Grill",
+        "Gajalee",
+        "Cafe Mondegar",
+        "Delhi Darbar"
       ],
       'delhi': [
         "Bukhara", 
@@ -216,7 +66,13 @@ const generateMockLeads = (category: string, location: string): Lead[] => {
         "Saravana Bhavan", 
         "Punjabi by Nature", 
         "The Spice Route", 
-        "Dakshin"
+        "Dakshin",
+        "Gulati Restaurant",
+        "Sagar Ratna",
+        "Olive Bar & Kitchen",
+        "Farzi Cafe",
+        "Oh! Calcutta",
+        "Haldiram's"
       ],
       'bangalore': [
         "MTR", 
@@ -226,7 +82,13 @@ const generateMockLeads = (category: string, location: string): Lead[] => {
         "Truffles", 
         "Corner House", 
         "Koshy's", 
-        "Meghana Foods"
+        "Meghana Foods",
+        "Brahmin's Coffee Bar",
+        "CTR (Central Tiffin Room)",
+        "The Only Place",
+        "Shiv Sagar",
+        "Maiya's",
+        "Halli Mane"
       ]
     },
     hotels: {
@@ -237,7 +99,10 @@ const generateMockLeads = (category: string, location: string): Lead[] => {
         "Four Seasons Hotel", 
         "JW Marriott Mumbai Juhu", 
         "ITC Grand Central", 
-        "The Leela"
+        "The Leela",
+        "Grand Hyatt Mumbai",
+        "The St. Regis Mumbai",
+        "Sofitel Mumbai BKC"
       ],
       'delhi': [
         "The Imperial", 
@@ -245,7 +110,11 @@ const generateMockLeads = (category: string, location: string): Lead[] => {
         "The Leela Palace", 
         "Taj Palace", 
         "ITC Maurya", 
-        "The Claridges"
+        "The Claridges",
+        "Hyatt Regency Delhi",
+        "The Lalit New Delhi",
+        "Shangri-La's Eros Hotel",
+        "Radisson Blu Plaza"
       ],
       'bangalore': [
         "The Leela Palace", 
@@ -253,7 +122,11 @@ const generateMockLeads = (category: string, location: string): Lead[] => {
         "ITC Gardenia", 
         "The Oberoi", 
         "JW Marriott Hotel", 
-        "Shangri-La Hotel"
+        "Shangri-La Hotel",
+        "The Ritz-Carlton",
+        "Vivanta by Taj - M.G. Road",
+        "Radisson Blu Atria",
+        "Aloft Bengaluru Cessna"
       ]
     }
   };
@@ -345,7 +218,7 @@ const generateMockLeads = (category: string, location: string): Lead[] => {
     });
   }
 
-  console.log(`Generated ${mockLeads.length} mock leads as fallback`);
+  console.log(`Generated ${mockLeads.length} sample leads for demonstration`);
   return mockLeads;
 };
 
@@ -387,7 +260,7 @@ export const exportToExcel = (leads: Lead[], category: string, location: string)
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Leads');
   
   // Generate a filename
-  const fileName = `JustDial_${category.replace(/\s+/g, '_')}_${location.replace(/\s+/g, '_')}_Leads.xlsx`;
+  const fileName = `Sample_${category.replace(/\s+/g, '_')}_${location.replace(/\s+/g, '_')}_Leads.xlsx`;
   
   // Create an export
   XLSX.writeFile(workbook, fileName);
