@@ -1,10 +1,11 @@
 
 import React from 'react';
-import { FileSpreadsheet, Download, RefreshCw, Trash2 } from 'lucide-react';
+import { FileSpreadsheet, Download, RefreshCw, Trash2, Phone, Mail, Globe, MapPin, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Lead } from '@/utils/extractorService';
+import { Lead, standardizePhoneNumber } from '@/utils/extractorService';
+import { Badge } from '@/components/ui/badge';
 
 interface ResultsDisplayProps {
   leads: Lead[];
@@ -41,7 +42,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
   return (
     <motion.div 
-      className="w-full max-w-2xl mx-auto"
+      className="w-full max-w-4xl mx-auto"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -74,36 +75,62 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         </div>
         
         <div className="bg-white/50 dark:bg-black/50 rounded-lg border border-gray-200 dark:border-gray-800 mb-4">
-          <ScrollArea className="h-[400px] rounded-md">
+          <ScrollArea className="h-[500px] rounded-md">
             <div className="p-4">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200 dark:border-gray-800">
-                    <th className="text-left py-2 px-4 text-gray-600 dark:text-gray-400 text-sm font-medium">Name</th>
-                    <th className="text-left py-2 px-4 text-gray-600 dark:text-gray-400 text-sm font-medium">Phone</th>
-                    <th className="text-left py-2 px-4 text-gray-600 dark:text-gray-400 text-sm font-medium">Address</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <AnimatePresence>
-                    {leads.map((lead, index) => (
-                      <motion.tr 
-                        key={index}
-                        className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-colors"
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, delay: index * 0.05 }}
-                      >
-                        <td className="py-3 px-4 text-gray-900 dark:text-gray-200 font-medium">{lead.name}</td>
-                        <td className="py-3 px-4 text-gray-700 dark:text-gray-300">{lead.phone}</td>
-                        <td className="py-3 px-4 text-gray-700 dark:text-gray-300 truncate max-w-[200px]">
-                          {lead.address}
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </AnimatePresence>
-                </tbody>
-              </table>
+              <AnimatePresence>
+                {leads.map((lead, index) => (
+                  <motion.div 
+                    key={index}
+                    className="mb-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all border border-gray-100 dark:border-gray-700"
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-medium text-lg text-gray-900 dark:text-white">{lead.name}</h3>
+                      {lead.rating && (
+                        <Badge variant="outline" className="flex items-center gap-1">
+                          <Star size={12} className="text-yellow-500 fill-yellow-500" />
+                          {lead.rating}
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3">
+                      <div className="flex items-center text-gray-700 dark:text-gray-300">
+                        <Phone size={16} className="mr-2 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                        <span className="font-medium">{standardizePhoneNumber(lead.phone)}</span>
+                      </div>
+                      
+                      <div className="flex items-start text-gray-700 dark:text-gray-300">
+                        <MapPin size={16} className="mr-2 text-red-500 dark:text-red-400 flex-shrink-0 mt-1" />
+                        <span>{lead.address}</span>
+                      </div>
+                      
+                      {lead.email && (
+                        <div className="flex items-center text-gray-700 dark:text-gray-300">
+                          <Mail size={16} className="mr-2 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+                          <span className="truncate">{lead.email}</span>
+                        </div>
+                      )}
+                      
+                      {lead.website && (
+                        <div className="flex items-center text-gray-700 dark:text-gray-300">
+                          <Globe size={16} className="mr-2 text-green-600 dark:text-green-400 flex-shrink-0" />
+                          <a 
+                            href={lead.website} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="truncate text-blue-600 dark:text-blue-400 hover:underline"
+                          >
+                            {lead.website.replace(/(^\w+:|^)\/\//, '')}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
           </ScrollArea>
         </div>
