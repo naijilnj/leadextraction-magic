@@ -32,6 +32,70 @@ export const extractLeads = async (
     electricians: ["Electrical Service", "Power Systems", "Wiring Specialist", "Electrical Repairs", "Installation Expert"],
   };
 
+  // Add realistic business names for popular categories
+  const realBusinessNames = {
+    restaurants: {
+      'mumbai': [
+        "Afzal's Mao Family Restaurant", 
+        "Trishna", 
+        "Mahesh Lunch Home", 
+        "Britannia & Co.", 
+        "The Table", 
+        "Pali Village Café", 
+        "Bastian", 
+        "Jai Hind Lunch Home", 
+        "Khyber"
+      ],
+      'delhi': [
+        "Bukhara", 
+        "Indian Accent", 
+        "Karim's", 
+        "Moti Mahal", 
+        "Saravana Bhavan", 
+        "Punjabi by Nature", 
+        "The Spice Route", 
+        "Dakshin"
+      ],
+      'bangalore': [
+        "MTR", 
+        "Vidyarthi Bhavan", 
+        "Empire Restaurant", 
+        "Nagarjuna", 
+        "Truffles", 
+        "Corner House", 
+        "Koshy's", 
+        "Meghana Foods"
+      ]
+    },
+    hotels: {
+      'mumbai': [
+        "The Taj Mahal Palace", 
+        "The Oberoi", 
+        "Trident Nariman Point", 
+        "Four Seasons Hotel", 
+        "JW Marriott Mumbai Juhu", 
+        "ITC Grand Central", 
+        "The Leela"
+      ],
+      'delhi': [
+        "The Imperial", 
+        "The Lodhi", 
+        "The Leela Palace", 
+        "Taj Palace", 
+        "ITC Maurya", 
+        "The Claridges"
+      ],
+      'bangalore': [
+        "The Leela Palace", 
+        "Taj West End", 
+        "ITC Gardenia", 
+        "The Oberoi", 
+        "JW Marriott Hotel", 
+        "Shangri-La Hotel"
+      ]
+    }
+  };
+
   const getBusinessPrefix = () => {
     const categoryLower = category.toLowerCase();
     for (const [key, prefixes] of Object.entries(mockBusinessTypes)) {
@@ -74,16 +138,49 @@ export const extractLeads = async (
   // Generate some sample email domains
   const emailDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'company.com', 'business.in'];
   
+  // Determine if we should use real business names if available
+  const locationLower = location.toLowerCase();
+  const categoryLower = category.toLowerCase();
+  const hasRealBusinessNames = realBusinessNames[categoryLower] && realBusinessNames[categoryLower][locationLower];
+  
   // Generate 10-20 mock leads with improved data
   const count = Math.floor(Math.random() * 11) + 10;
-  const mockLeads: Lead[] = Array.from({ length: count }, (_, i) => {
+  const mockLeads: Lead[] = [];
+  
+  // If we have real business names for this category and location, use them first
+  if (hasRealBusinessNames) {
+    const realNames = realBusinessNames[categoryLower][locationLower];
+    for (let i = 0; i < Math.min(realNames.length, count); i++) {
+      const businessName = realNames[i];
+      const phoneNumber = generatePhoneNumber();
+      
+      // Generate a sanitized business name for email and website
+      const sanitizedName = businessName.toLowerCase().replace(/[^a-z0-9]/g, '');
+      
+      mockLeads.push({
+        name: businessName,
+        phone: phoneNumber,
+        address: `${Math.floor(Math.random() * 100) + 1} ${
+          streets[Math.floor(Math.random() * streets.length)]
+        }, ${location}`,
+        rating: `${(Math.random() * 3 + 2).toFixed(1)}/5`,
+        category: category,
+        email: Math.random() > 0.3 ? `info@${sanitizedName}.com` : `${sanitizedName}@${emailDomains[Math.floor(Math.random() * emailDomains.length)]}`,
+        website: Math.random() > 0.4 ? `https://www.${sanitizedName}.com` : undefined,
+      });
+    }
+  }
+  
+  // Fill the remaining slots with generated names
+  const remainingCount = count - mockLeads.length;
+  for (let i = 0; i < remainingCount; i++) {
     const businessName = `${location} ${prefixes[Math.floor(Math.random() * prefixes.length)]} ${i + 1}`;
     const phoneNumber = generatePhoneNumber();
     
     // Generate a sanitized business name for email and website
     const sanitizedName = businessName.toLowerCase().replace(/[^a-z0-9]/g, '');
     
-    return {
+    mockLeads.push({
       name: businessName,
       phone: phoneNumber,
       address: `${Math.floor(Math.random() * 100) + 1} ${
@@ -92,9 +189,9 @@ export const extractLeads = async (
       rating: `${(Math.random() * 3 + 2).toFixed(1)}/5`,
       category: category,
       email: Math.random() > 0.3 ? `info@${sanitizedName}.com` : `${sanitizedName}@${emailDomains[Math.floor(Math.random() * emailDomains.length)]}`,
-      website: Math.random() > 0.4 ? `https://www.${sanitizedName}.com` : null,
-    };
-  });
+      website: Math.random() > 0.4 ? `https://www.${sanitizedName}.com` : undefined,
+    });
+  }
 
   console.log(`Generated ${mockLeads.length} leads with improved phone number formatting`);
   return mockLeads;
