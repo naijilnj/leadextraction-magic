@@ -101,10 +101,18 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSubmit, isLoading }) => {
                 exit={{ opacity: 0, height: 0 }}
                 className="text-sm text-center text-gray-600 dark:text-gray-300"
               >
-                This may take a minute. We're extracting leads from JustDial...
+                Attempting to extract real data from JustDial. This may take a minute...
               </motion.p>
             )}
           </AnimatePresence>
+          
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2"
+          >
+            Note: If real data extraction fails due to JustDial's anti-scraping measures, mock data will be shown as a fallback.
+          </motion.p>
         </form>
       </div>
     </motion.div>
